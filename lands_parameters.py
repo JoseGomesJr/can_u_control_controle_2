@@ -11,8 +11,10 @@ def landsParameters(land, level):
     damping = 0.65
     if level == 1:
       damping = 0.4
-    if level == 3 or level == 4:
-      damping = 0.9
+    if level == 3:
+      damping = 0.1
+    if level == 4:
+      damping = 0.001
   # Non-linearLand
   elif land == 2:
     damping = 0.65
