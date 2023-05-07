@@ -1,6 +1,7 @@
 import numpy as np
 from lands_functions import *
 from lands_parameters import *
+import pyswarms as ps
 
 def constrain(val, min_val, max_val):
     return max(min(val, max_val), min_val)
@@ -32,56 +33,63 @@ def computePositions(x, y, U, land, level, testDepth, dt):
 
     return positions
 
-def evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY):
-    fitness = np.zeros(len(population))
-
-    for i, individual in enumerate(population):
-        positions = computePositions(x, y, individual, land, level, testDepth, dt)
-        fitness[i] = computeBestDistance(targetX, targetY, positions)
-
-    return fitness
-
-def selectParents(population, fitness, numParents):
-    sortedIndices = np.argsort(fitness)
-    parents = population[sortedIndices[:numParents]]
-
-    return parents
-
-def crossover(parents, numOffspring):
-    numParents, numGenes = parents.shape
-    offspring = np.empty((numOffspring, numGenes))
-
-    for i in range(numOffspring):
-        parent1 = parents[i % numParents]
-        parent2 = parents[(i+1) % numParents]
-
-        crossoverPoint = np.random.randint(0, numGenes)
-        offspring[i, :crossoverPoint] = parent1[:crossoverPoint]
-        offspring[i, crossoverPoint:] = parent2[crossoverPoint:]
-
-    return offspring
-
-def mutate(offspring, mutationRate):
-    numOffspring, numGenes = offspring.shape
-
-    for i in range(numOffspring):
-        for j in range(numGenes):
-            if np.random.rand() < mutationRate:
-                offspring[i, j] = np.random.uniform(-1, 1)
-
-    return offspring
-
 def optimizeSignal(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, populationSize, numGenerations, numParents, mutationRate):
     numGenes = testDepth
     population = np.random.uniform(low=lowerLimit, high=upperLimit, size=(populationSize, numGenes))
 
-    for _ in range(numGenerations):
-        fitness = evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY)
-        parents = selectParents(population, fitness, numParents)
-        offspring = crossover(parents, populationSize - numParents)
-        mutated_offspring = mutate(offspring, mutationRate)
-        population = np.vstack((parents, mutated_offspring))
-
-    bestIndividual = population[np.argmin(fitness)]
-    bestControlSignal = bestIndividual[0]
+    bestControlSignal = evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY)
     return bestControlSignal
+
+
+computePositions
+
+def cost_function(control, params):
+    u = control
+
+    x = params.get("x")
+    y = params.get("y")
+    land = params.get("land")
+    level = params.get("level")
+    dt = params.get("dt")
+    targetX = params.get("targetX")
+    targetY = params.get("targetY")
+    testDepth = params.get("testDepth")
+
+    positions = computePositions(x, y, [u], land, level, testDepth, dt)
+
+    # w1 = 1
+    # w2 = 1
+    # w3 = 1
+    # w4 = 0.01
+    
+    cost = computeBestDistance(targetX, targetY, positions)
+
+    return cost
+
+def cost_function_wrapper(x, kwargs):
+    n_particles = x.shape[0]
+    cost = [cost_function(x[i], kwargs) for i in range(n_particles)]
+    return np.array(cost)
+
+
+def evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY):
+    options = {'c1': 0.3, 'c2': 0.9, 'w':0.8}
+    bounds = ([-1], [1])
+
+    params = {
+        "x": x,
+        "y": y,
+        "land": land,
+        "level": level,
+        "dt": dt,
+        "targetX": targetX,
+        "targetY": targetY,
+        "testDepth": testDepth
+    }
+
+    optimizer = ps.single.GlobalBestPSO(n_particles=len(population)//10, dimensions=1, options=options, bounds = bounds)
+
+    _, pos = optimizer.optimize(cost_function_wrapper, iters=testDepth//10, kwargs= params)
+
+    u = pos
+    return u[0]
