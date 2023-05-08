@@ -10,7 +10,7 @@ def computeBestDistance(targetX, targetY, positions):
     minDistance = 1000
 
     for position in positions:
-        currentDistance = ((position[0] - targetX) ** 2 + (position[1] - targetY) ** 2)
+        currentDistance = np.sqrt(np.power(position[0] - targetX, 2) + np.power(position[1] - targetY, 2))
 
         if currentDistance < minDistance:
             minDistance = currentDistance
@@ -34,17 +34,13 @@ def computePositions(x, y, U, land, level, testDepth, dt):
     return positions
 
 def optimizeSignal(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, populationSize, numGenerations, numParents, mutationRate):
-    numGenes = 100
-    population = np.random.uniform(low=lowerLimit, high=upperLimit, size=(populationSize, numGenes))
     if (abs(x)>0.95 or abs(y)>0.95): #Se saiu da tela, tenta voltar para os centro do mapa.
         targetX = 0.0
         targetY = 0.0
 
-    bestControlSignal = evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY)
+    bestControlSignal = evaluateFitness(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit)
     return bestControlSignal
 
-
-computePositions
 
 def cost_function(control, params):
     u = control
@@ -60,12 +56,12 @@ def cost_function(control, params):
 
     positions = computePositions(x, y, [u], land, level, testDepth, dt)
 
-    # w1 = 1
+    w1 = 1
     # w2 = 1
     # w3 = 1
     # w4 = 0.01
     
-    cost = computeBestDistance(targetX, targetY, positions)
+    cost = w1 * computeBestDistance(targetX, targetY, positions)
 
     return cost
 
@@ -75,9 +71,9 @@ def cost_function_wrapper(x, kwargs):
     return np.array(cost)
 
 
-def evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY):
-    options = {'c1': 0.3, 'c2': 0.9, 'w':0.8}
-    bounds = ([-1], [1])
+def evaluateFitness(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit):
+    options = {'c1': 0.1, 'c2': 2, 'w':1}
+    bounds = ([lowerLimit], [upperLimit])
 
     params = {
         "x": x,
@@ -90,7 +86,7 @@ def evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targe
         "testDepth": testDepth
     }
 
-    optimizer = ps.single.GlobalBestPSO(n_particles=len(population)//10, dimensions=1, options=options, bounds = bounds)
+    optimizer = ps.single.GlobalBestPSO(n_particles=testDepth//10, dimensions=1, options=options, bounds = bounds)
 
     _, pos = optimizer.optimize(cost_function_wrapper, iters=testDepth//10, kwargs= params)
 
