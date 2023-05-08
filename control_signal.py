@@ -7,7 +7,7 @@ def constrain(val, min_val, max_val):
     return max(min(val, max_val), min_val)
 
 def computeBestDistance(targetX, targetY, positions):
-    minDistance = 1000
+    minDistance = np.inf
 
     for position in positions:
         currentDistance = np.sqrt(np.power(position[0] - targetX, 2) + np.power(position[1] - targetY, 2))
@@ -27,7 +27,7 @@ def computePositions(x, y, U, land, level, testDepth, dt):
         uIndex = i % len(U)
         u = U[uIndex]
         xp = landsFunctions(land, level, p[0], p[1], u)
-
+        
         p[0] += xp[0]*dt
         p[1] += xp[1]*dt
 
@@ -56,12 +56,12 @@ def cost_function(control, params):
 
     positions = computePositions(x, y, [u], land, level, testDepth, dt)
 
-    w1 = 1
+    #w1 = 1
     # w2 = 1
     # w3 = 1
     # w4 = 0.01
     
-    cost = w1 * computeBestDistance(targetX, targetY, positions)
+    cost = computeBestDistance(targetX, targetY, positions) 
 
     return cost
 
