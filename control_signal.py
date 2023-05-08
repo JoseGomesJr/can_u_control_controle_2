@@ -34,8 +34,11 @@ def computePositions(x, y, U, land, level, testDepth, dt):
     return positions
 
 def optimizeSignal(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, populationSize, numGenerations, numParents, mutationRate):
-    numGenes = testDepth
+    numGenes = 100
     population = np.random.uniform(low=lowerLimit, high=upperLimit, size=(populationSize, numGenes))
+    if (abs(x)>0.95 or abs(y)>0.95): #Se saiu da tela, tenta voltar para os centro do mapa.
+        targetX = 0.0
+        targetY = 0.0
 
     bestControlSignal = evaluateFitness(population, x, y, land, level, testDepth, dt, targetX, targetY)
     return bestControlSignal

@@ -14,16 +14,18 @@ def landsParameters(land, level):
     if level == 3:
       upperLimit = 0.7
       lowerLimit = -0.7
-      damping = 0.001
+      damping = 0.05
     if level == 4:
-      damping = 0.25
+      upperLimit = 0.7
+      lowerLimit = -0.7
+      damping = 0.001
   # Non-linearLand
   elif land == 2:
     damping = 0.65
     if level == 3:
           damping = 0.01
     if level == 4:
-      damping = 0.35
+      damping = 0.1
   # SwitchingLand
   elif land == 3:
     damping = 0.4
