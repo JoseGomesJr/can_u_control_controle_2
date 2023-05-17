@@ -38,10 +38,6 @@ def computePositions(x, y, U, land, level, testDepth, dt, signal_actual, damping
     return positions
 
 def optimizeSignal(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, populationSize, numGenerations, numParents, mutationRate, signal_actual, damping):
-    if (abs(x)>0.95 or abs(y)>0.95): #Se saiu da tela, tenta voltar para os centro do mapa.
-        targetX = 0.0
-        targetY = 0.0
-
     bestControlSignal, damping = evaluateFitness(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, signal_actual, damping)
     return bestControlSignal, damping
 
@@ -59,6 +55,7 @@ def cost_function(control, params):
     targetY = params.get("targetY")
     testDepth = params.get("testDepth")
     signal_actual = params.get("signal_actual")
+
     positions = computePositions(x, y, [u], land, level, testDepth, dt, signal_actual, [damping])
 
     #w1 = 1
@@ -78,7 +75,7 @@ def cost_function_wrapper(x, kwargs):
 
 def evaluateFitness(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, signal_actual, damping):
     options = {'c1': 0.1, 'c2': 2, 'w':1}
-    bounds = ([-10, -10], [10, 10])
+    bounds = ([-10, lowerLimit], [10, upperLimit])
 
     params = {
         "x": x,
