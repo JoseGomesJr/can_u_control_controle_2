@@ -1,6 +1,5 @@
 from math import *
 from server_base import Server
-import numpy as np
 
 from lands_parameters import *
 from control_signal import *
@@ -28,10 +27,9 @@ class Control:
         player_x, player_y = received[3], received[4]
         target_x, target_y = received[5], received[6]
         if self.previousReceived != received:
-          signal = optimizeSignal(player_x, player_y, land, level, self.testDepth, self.dt, target_x, target_y, self.upperLimit, self.lowerLimit, 20, 20, 4, 0.1)
-          print(signal)
-          self.controlSignal = self.damping*self.controlSignal + (1 - self.damping)*signal
-          self.controlSignal = constrain(self.controlSignal, self.lowerLimit, self.upperLimit)
+          signal, damping = optimizeSignal(player_x, player_y, land, level, self.testDepth, self.dt, target_x, target_y, self.upperLimit, self.lowerLimit, 20, 20, 4, 0.1, self.controlSignal, self.damping)
+
+          self.controlSignal = self.controlSignal + damping*signal
 
         else:
           self.controlSignal = 0
