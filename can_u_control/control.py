@@ -37,6 +37,7 @@ class Control:
         self.time += self.dt
         self.previousReceived = received
         print("-------", self.controlSignal)
+        self.controlSignal = constrain(self.controlSignal, -1, 1)
         return self.controlSignal
 
       except Exception as e:

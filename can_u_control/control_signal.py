@@ -12,7 +12,7 @@ def computeBestDistance(targetX, targetY, positions):
     for position in positions:
         currentDistance = np.sqrt(np.power(position[0] - targetX, 2) + np.power(position[1] - targetY, 2))
 
-        if abs(position[0]) > 0.8 or abs(position[1] > 0.8):
+        if abs(position[0]) > 2 or abs(position[1] > 2):
             add_cost = 100000
 
         if currentDistance < minDistance:
@@ -24,7 +24,7 @@ def computePositions(x, y, U, land, level, testDepth, dt, signal_actual, damping
     positions = []
     p = np.array([x, y])
 
-    for i in range(testDepth):
+    for i in range(50):
         positions.append(p.copy())
 
         uIndex = i % len(U)
@@ -74,8 +74,8 @@ def cost_function_wrapper(x, kwargs):
 
 
 def evaluateFitness(x, y, land, level, testDepth, dt, targetX, targetY, upperLimit, lowerLimit, signal_actual, damping):
-    options = {'c1': 0.1, 'c2': 2, 'w':1}
-    bounds = ([-10, lowerLimit], [10, upperLimit])
+    options = {'c1': 0.5, 'c2': 0.3, 'w':1}
+    bounds = ([-1, lowerLimit], [1, upperLimit])
 
     params = {
         "x": x,
